@@ -1,6 +1,43 @@
+const { Op } = require('sequelize');
 const { Doctor } = require('../models');
 
 class DoctorService {
+  /**
+   * Get all doctors with pagination and filters
+   */
+  async getAllDoctors(page = 1, limit = 10, filters = {}) {
+    const offset = (page - 1) * limit;
+    const where = {};
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+    if (filters.specialization) {
+      where.specialization = filters.specialization;
+    }
+    if (filters.search) {
+      where[Op.or] = [
+        { firstName: { [Op.like]: `%${filters.search}%` } },
+        { lastName: { [Op.like]: `%${filters.search}%` } },
+        { email: { [Op.like]: `%${filters.search}%` } }
+      ];
+    }
+
+    const { rows, count } = await Doctor.findAndCountAll({
+      where,
+      offset,
+      limit,
+      order: [['createdAt', 'DESC']]
+    });
+
+    return {
+      doctors: rows,
+      total: count,
+      page,
+      limit
+    };
+  }
+
   /**
    * Get doctor by ID
    */

@@ -3,6 +3,35 @@ const responseFormatter = require('../utils/responseFormatter');
 
 class DoctorController {
   /**
+   * Get all doctors
+   */
+  async getAll(req, res, next) {
+    try {
+      const { page = 1, limit = 10, status, specialization, search } = req.query;
+
+      const result = await doctorService.getAllDoctors(
+        parseInt(page),
+        parseInt(limit),
+        { status, specialization, search }
+      );
+
+      res.json(
+        responseFormatter.paginated(
+          result.doctors,
+          {
+            total: result.total,
+            page: result.page,
+            limit: result.limit
+          },
+          'Doctors retrieved successfully'
+        )
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Get doctor by ID
    */
   async getById(req, res, next) {
